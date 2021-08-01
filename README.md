@@ -1,5 +1,6 @@
 For deploying on git pages
 
-heroku URL is https://benefique-choucroute-44144.herokuapp.com/
+heroku URL is https://cryptic-caverns-49868.herokuapp.com/
+gitHub pages URL is https://infandel.github.io/bike-rent-app/
 
 With all regards. Infandel.
