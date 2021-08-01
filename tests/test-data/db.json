@@ -6,16 +6,6 @@
       "pricePerHour": 8
     },
     {
-      "brand": "Fishy",
-      "pricePerHour": 12,
-      "id": 5
-    },
-    {
-      "brand": "Monster",
-      "pricePerHour": 12,
-      "id": 8
-    },
-    {
       "brand": "Fischer",
       "pricePerHour": 6,
       "id": 9
@@ -26,9 +16,19 @@
       "id": 12
     },
     {
-      "brand": "Mercedes",
+      "brand": "Tasty",
       "pricePerHour": 5,
-      "id": 13
+      "id": 15
+    },
+    {
+      "brand": "Cozy",
+      "pricePerHour": 5,
+      "id": 16
+    },
+    {
+      "brand": "Kama",
+      "pricePerHour": 2,
+      "id": 18
     }
   ],
   "trips": [
@@ -75,18 +75,46 @@
       "id": 10
     },
     {
-      "rentPoint": "Northern",
-      "rentHours": 10,
-      "rentDate": "2019-10-04T19:00:00.000Z",
-      "bicycleId": 13,
-      "id": 11
+      "rentPoint": "Eastern",
+      "rentHours": 6,
+      "rentDate": "1999-10-09T18:00:00.000Z",
+      "bicycleId": 15,
+      "id": 18
     },
     {
       "rentPoint": "Eastern",
+      "rentHours": 5,
+      "rentDate": null,
+      "bicycleId": 16,
+      "id": 20
+    },
+    {
+      "rentPoint": "Eastern",
+      "rentHours": 15,
+      "rentDate": "1999-10-09T18:00:00.000Z",
+      "bicycleId": 15,
+      "id": 25
+    },
+    {
+      "rentPoint": "Northern",
+      "rentHours": 13,
+      "rentDate": "2010-05-04T18:00:00.000Z",
+      "bicycleId": 16,
+      "id": 26
+    },
+    {
+      "rentPoint": "East",
+      "rentHours": 13,
+      "rentDate": "2019-10-09T19:00:00.000Z",
+      "bicycleId": 12,
+      "id": 27
+    },
+    {
+      "rentPoint": "South",
       "rentHours": 10,
-      "rentDate": "2009-10-09T18:00:00.000Z",
-      "bicycleId": 13,
-      "id": 12
+      "rentDate": "2020-12-31T19:00:00.000Z",
+      "bicycleId": 18,
+      "id": 28
     }
   ]
 }

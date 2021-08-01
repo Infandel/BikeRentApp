@@ -2,9 +2,8 @@ import Controller from '@ember/controller';
 
 export default Controller.extend({
   actions: {
-    async saveTrip(e) {
+    async saveTrip() {
       try {
-        e.preventDefault();
         let newTrip = this.get('store').createRecord('trip', this.get('model.trip'));
         await newTrip.save();
 

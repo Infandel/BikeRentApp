@@ -1,29 +1,7 @@
 import DS from 'ember-data';
 import { computed } from '@ember/object';
-import { validator, buildValidations } from 'ember-cp-validations';
 
-const Validations = buildValidations({
-  brand: [
-    validator('ds-error'),
-    validator('presence', true),
-    validator('length', {
-      min: 1,
-      max: 64
-    })
-  ],
-  pricePerHour: [
-    validator('ds-error'),
-    validator('presence', true),
-    validator('number', {
-      allowString: false,
-      integer: true,
-      gt: 1,
-      lte: 100
-    })
-  ],
-})
-
-export default DS.Model.extend(Validations, {
+export default DS.Model.extend({
   brand: DS.attr('string'),
   pricePerHour: DS.attr('number'),
 
