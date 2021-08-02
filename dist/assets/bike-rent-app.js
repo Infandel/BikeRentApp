@@ -20,8 +20,13 @@ define('bike-rent-app/adapters/application', ['exports', 'ember-data', 'bike-ren
     buildURL(modelName, id, snapshot, requestType, query) {
       let url = this._super(...arguments);
       if (modelName === 'bicycle' && requestType === 'findRecord' && id) {
+        url += '?_embed=points';
+      }
+
+      if (modelName === 'point' && requestType === 'findRecord' && id) {
         url += '?_embed=trips';
       }
+
       return url;
     }
   });
@@ -135,6 +140,46 @@ define('bike-rent-app/components/bicycle-item', ['exports'], function (exports) 
   exports.default = Ember.Component.extend({});
 });
 define('bike-rent-app/components/history-item', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Component.extend({});
+});
+define('bike-rent-app/components/point-form', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Component.extend({
+    store: Ember.inject.service(),
+    actions: {
+      async savePoint(e) {
+        e.preventDefault();
+        this.get('onSubmit')({
+          rentPoint: this.get('rentPoint'),
+          bicycle: this.get('bicycle')
+        });
+      },
+
+      searchBicycle(query) {
+        return this.get('store').query('bicycle', { q: query });
+      }
+    },
+
+    didReceiveAttrs() {
+      this._super(...arguments);
+
+      this.setProperties({
+        rentPoint: this.get('point.rentPoint'),
+        bicycle: this.get('point.bicycle')
+      });
+    }
+  });
+});
+define('bike-rent-app/components/point-item', ['exports'], function (exports) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
@@ -268,37 +313,31 @@ define('bike-rent-app/components/trip-form', ['exports', 'ember-cp-validations']
 
 
   const Validations = (0, _emberCpValidations.buildValidations)({
-    rentHours: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('number', {
-      allowString: false,
-      integer: true,
-      gt: 1,
-      lte: 1000
+    rentHours: [(0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('length', {
+      min: 1,
+      max: 4
     })],
-    rentPoint: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true)],
-    rentDate: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('format', {
-      regex: /^\d{4}-\d{2}-\d{2}$/,
-      message: 'Date should be in a format YYYY-MM-DD'
-    })]
+    rentDate: [(0, _emberCpValidations.validator)('presence', true)]
   });
 
   exports.default = Ember.Component.extend(Validations, {
     store: Ember.inject.service(),
     isFormValid: Ember.computed.alias('validations.isValid'),
+
     actions: {
       async saveTrip(e) {
-        e.preventDefault();
-        if (this.get('isFormValid')) {
-          this.get('onSubmit')({
-            rentPoint: this.get('rentPoint'),
-            rentHours: this.get('rentHours'),
-            rentDate: this.get('rentDate'),
-            bicycle: this.get('bicycle')
-          });
+        try {
+          e.preventDefault();
+          if (this.get('isFormValid')) {
+            this.get('onSubmit')({
+              rentHours: this.get('rentHours'),
+              rentDate: this.get('rentDate'),
+              point: this.get('trip.point')
+            });
+          }
+        } catch (e) {
+          this.send('error', e);
         }
-      },
-
-      searchBicycle(query) {
-        return this.get('store').query('bicycle', { q: query });
       }
     },
 
@@ -306,10 +345,9 @@ define('bike-rent-app/components/trip-form', ['exports', 'ember-cp-validations']
       this._super(...arguments);
 
       this.setProperties({
-        rentPoint: this.get('trip.rentPoint'),
         rentHours: this.get('trip.rentHours'),
         rentDate: this.get('trip.rentDate'),
-        bicycle: this.get('trip.bicycle')
+        point: this.get('trip.point')
       });
     }
   });
@@ -345,6 +383,8 @@ define('bike-rent-app/controllers/bicycle/create', ['exports'], function (export
     value: true
   });
   exports.default = Ember.Controller.extend({
+    store: Ember.inject.service(),
+
     actions: {
       async saveBicycle(bicycle) {
         let newBicycle = this.get('store').createRecord('bicycle', bicycle);
@@ -364,20 +404,9 @@ define('bike-rent-app/controllers/bicycle/detail', ['exports'], function (export
   });
   exports.default = Ember.Controller.extend({
     actions: {
-      // async deleteBicycle(bicycle) {
-      //   await bicycle.destroyRecord();
-
-      //   this.transitionToRoute('bicycle.index');
-      // }
-      async deleteBicycle() {
+      async deleteBicycle(bicycle) {
         try {
-          let trips = this.model.trips.toArray();
-
-          await this.model.destroyRecord();
-
-          trips.forEach(trip => {
-            trip.unloadRecord();
-          });
+          await bicycle.destroyRecord();
 
           this.transitionToRoute('bicycle.index');
         } catch (e) {
@@ -387,7 +416,7 @@ define('bike-rent-app/controllers/bicycle/detail', ['exports'], function (export
     }
   });
 });
-define('bike-rent-app/controllers/bicycle/detail/new-trip', ['exports'], function (exports) {
+define('bike-rent-app/controllers/bicycle/detail/new-point', ['exports'], function (exports) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
@@ -395,11 +424,11 @@ define('bike-rent-app/controllers/bicycle/detail/new-trip', ['exports'], functio
   });
   exports.default = Ember.Controller.extend({
     actions: {
-      async saveTrip(e) {
+      async savePoint(e) {
         try {
           e.preventDefault();
-          let newTrip = this.get('store').createRecord('trip', this.get('model.trip'));
-          await newTrip.save();
+          let newPoint = this.get('store').createRecord('point', this.get('model.point'));
+          await newPoint.save();
 
           this.transitionToRoute('bicycle.detail', this.get('model.bicycle.id'));
         } catch (e) {
@@ -441,6 +470,115 @@ define('bike-rent-app/controllers/history', ['exports'], function (exports) {
     actions: {
       searchTrip(query) {
         return this.get('store').query('trip', { q: query });
+      }
+    }
+  });
+});
+define('bike-rent-app/controllers/point', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Controller.extend({
+    queryParams: ["search"],
+    search: ''
+  });
+});
+define('bike-rent-app/controllers/point/create', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Controller.extend({
+    store: Ember.inject.service(),
+
+    actions: {
+      async savePoint(point) {
+        try {
+          let newPoint = this.get('store').createRecord('point', point);
+          await newPoint.save();
+          this.transitionToRoute('point.index');
+        } catch (e) {
+          this.send('error', e);
+        }
+      }
+    }
+  });
+});
+define('bike-rent-app/controllers/point/detail', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Controller.extend({
+    actions: {
+      // async deletePoint(point) {
+      //   await point.destroyRecord();
+
+      //   this.transitionToRoute('point.index');
+      // }
+      async deletePoint() {
+        try {
+          let trips = this.model.trips.toArray();
+
+          await this.model.destroyRecord();
+
+          trips.forEach(trip => {
+            trip.unloadRecord();
+          });
+
+          this.transitionToRoute('point.index');
+        } catch (e) {
+          this.send('error', e);
+        }
+      }
+    }
+  });
+});
+define('bike-rent-app/controllers/point/detail/new-trip', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Controller.extend({
+    store: Ember.inject.service(),
+
+    actions: {
+      async saveTrip(trip) {
+        try {
+          const newTrip = this.get('store').createRecord('trip', trip);
+
+          await newTrip.save();
+
+          this.transitionToRoute('point.detail', this.get('model.point.id'));
+        } catch (e) {
+          this.send('error', e);
+        }
+      }
+    }
+  });
+});
+define('bike-rent-app/controllers/point/edit', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Controller.extend({
+    actions: {
+      async savePoint(point) {
+        try {
+          this.get('model').setProperties(point);
+          await this.get('model').save();
+
+          this.transitionToRoute('point.index');
+        } catch (e) {
+          this.send('error', e);
+        }
       }
     }
   });
@@ -603,6 +741,23 @@ define('bike-rent-app/helpers/get-bicycle-name', ['exports'], function (exports)
 
   exports.default = Ember.Helper.helper(getBicycleName);
 });
+define('bike-rent-app/helpers/get-point-name', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.getBicycleName = getBicycleName;
+  function getBicycleName(params /*, hash*/) {
+    let [rentPoint, bicycleItself, averageRentTime] = params;
+    return Ember.String.htmlSafe(`<strong>${rentPoint}</strong>.
+  ${bicycleItself} bicycle.
+   Average rent time is: ${averageRentTime}
+   `);
+  }
+
+  exports.default = Ember.Helper.helper(getBicycleName);
+});
 define('bike-rent-app/helpers/get-trip-name', ['exports'], function (exports) {
   'use strict';
 
@@ -611,11 +766,11 @@ define('bike-rent-app/helpers/get-trip-name', ['exports'], function (exports) {
   });
   exports.getTripName = getTripName;
   function getTripName(params /*, hash*/) {
-    let [rentPoint, rentHours, rentDate, bicycleId] = params;
-    return Ember.String.htmlSafe(`Rent point is <strong>${rentPoint}</strong>. 
-    Bike was rented for<strong>${rentHours} hours</strong>.
-    Renting date is ${rentDate}.
-    and bicycle ID is ${bicycleId}`);
+    let [rentHours, rentDate, pointName] = params;
+    return Ember.String.htmlSafe(`Bike was rented for <strong>${rentHours} hours</strong>
+    at the ${pointName} point
+    on ${rentDate}
+    `);
   }
 
   exports.default = Ember.Helper.helper(getTripName);
@@ -1278,31 +1433,30 @@ define("bike-rent-app/instance-initializers/ember-data", ["exports", "ember-data
     initialize: _initializeStoreService.default
   };
 });
-define('bike-rent-app/models/bicycle', ['exports', 'ember-data', 'ember-cp-validations'], function (exports, _emberData, _emberCpValidations) {
+define('bike-rent-app/models/bicycle', ['exports', 'ember-data'], function (exports, _emberData) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-
-
-  const Validations = (0, _emberCpValidations.buildValidations)({
-    brand: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('length', {
-      min: 1,
-      max: 64
-    })],
-    pricePerHour: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('number', {
-      allowString: false,
-      integer: true,
-      gt: 1,
-      lte: 100
-    })]
-  });
-
-  exports.default = _emberData.default.Model.extend(Validations, {
+  exports.default = _emberData.default.Model.extend({
     brand: _emberData.default.attr('string'),
     pricePerHour: _emberData.default.attr('number'),
 
+    points: _emberData.default.hasMany('point')
+
+  });
+});
+define('bike-rent-app/models/point', ['exports', 'ember-data'], function (exports, _emberData) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _emberData.default.Model.extend({
+    rentPoint: _emberData.default.attr('string'),
+
+    bicycle: _emberData.default.belongsTo('bicycle'),
     trips: _emberData.default.hasMany('trip'),
 
     averageRentTime: Ember.computed('trips.@each.rentHours', function () {
@@ -1312,38 +1466,17 @@ define('bike-rent-app/models/bicycle', ['exports', 'ember-data', 'ember-cp-valid
     })
   });
 });
-define('bike-rent-app/models/trip', ['exports', 'ember-data', 'ember-cp-validations'], function (exports, _emberData, _emberCpValidations) {
+define('bike-rent-app/models/trip', ['exports', 'ember-data'], function (exports, _emberData) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-
-
-  const Validations = (0, _emberCpValidations.buildValidations)({
-    rentHours: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('number', {
-      allowString: false,
-      integer: true,
-      gt: 1,
-      lte: 1000
-    })],
-    rentPoint: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('length', {
-      min: 1,
-      max: 64
-    })],
-    rentDate: [(0, _emberCpValidations.validator)('ds-error'), (0, _emberCpValidations.validator)('presence', true), (0, _emberCpValidations.validator)('format', {
-      regex: /^\d{4}-\d{2}-\d{2}$/,
-      message: 'Date should be in a format YYYY-MM-DD'
-    })]
-  });
-
-  exports.default = _emberData.default.Model.extend(Validations, {
-    rentPoint: _emberData.default.attr('string'),
+  exports.default = _emberData.default.Model.extend({
     rentHours: _emberData.default.attr('number'),
     rentDate: _emberData.default.attr('date-string'),
-    bicycleId: _emberData.default.attr('number'),
 
-    bicycle: _emberData.default.belongsTo('bicycle')
+    point: _emberData.default.belongsTo('point')
   });
 });
 define('bike-rent-app/resolver', ['exports', 'ember-resolver'], function (exports, _emberResolver) {
@@ -1371,13 +1504,20 @@ define('bike-rent-app/router', ['exports', 'bike-rent-app/config/environment'], 
     this.route('bicycle', { path: '/bicycles' }, function () {
       this.route('create');
       this.route('detail', { path: '/:id' }, function () {
-        this.route('new-trip');
+        this.route('new-point');
       });
       this.route('edit', { path: '/:id/edit' });
     });
     this.route('history', { path: '/history' });
     this.route('error', { path: '/:error' });
     this.route('404', { path: '*path' });
+    this.route('point', { path: '/points' }, function () {
+      this.route('create');
+      this.route('detail', { path: '/:id' }, function () {
+        this.route('new-trip');
+      });
+      this.route('edit', { path: '/:id/edit' });
+    });
   });
 
   exports.default = Router;
@@ -1461,7 +1601,7 @@ define('bike-rent-app/routes/bicycle/detail', ['exports'], function (exports) {
     }
   });
 });
-define('bike-rent-app/routes/bicycle/detail/new-trip', ['exports'], function (exports) {
+define('bike-rent-app/routes/bicycle/detail/new-point', ['exports'], function (exports) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
@@ -1473,9 +1613,8 @@ define('bike-rent-app/routes/bicycle/detail/new-trip', ['exports'], function (ex
 
       return {
         bicycle,
-        trip: {
+        point: {
           rentPoint: '',
-          rentHours: '',
           rentDate: '',
           bicycle
         }
@@ -1536,6 +1675,101 @@ define('bike-rent-app/routes/index', ['exports'], function (exports) {
   });
   exports.default = Ember.Route.extend({});
 });
+define('bike-rent-app/routes/point', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Route.extend({
+    queryParams: {
+      search: {
+        refreshModel: true
+      }
+    },
+
+    model({ search }) {
+      if (search) {
+        return this.get('store').query('point', { q: search });
+      }
+      return this.get('store').findAll('point');
+    },
+
+    actions: {
+      loading() {
+        return false;
+      }
+    }
+  });
+});
+define('bike-rent-app/routes/point/create', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Route.extend({
+    model() {
+      return {
+        rentPoint: '',
+        rentDate: null,
+        bicycle: null
+      };
+    }
+  });
+});
+define('bike-rent-app/routes/point/detail', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Route.extend({
+    model({ id }) {
+      return this.get('store').findRecord('point', id);
+    }
+  });
+});
+define('bike-rent-app/routes/point/detail/index', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Route.extend({});
+});
+define('bike-rent-app/routes/point/detail/new-trip', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Route.extend({
+    model() {
+      const point = this.modelFor('point.detail');
+
+      return {
+        point,
+        trip: {
+          rentHours: '',
+          point
+        }
+      };
+    }
+  });
+});
+define('bike-rent-app/routes/point/edit', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Route.extend({
+    model({ id }) {
+      return this.get('store').findRecord('point', id);
+    }
+  });
+});
 define('bike-rent-app/serializers/application', ['exports', 'ember-data'], function (exports, _emberData) {
   'use strict';
 
@@ -1567,19 +1801,36 @@ define('bike-rent-app/serializers/application', ['exports', 'ember-data'], funct
     }
   });
 });
-define('bike-rent-app/serializers/bicycle', ['exports', 'bike-rent-app/serializers/application'], function (exports, _application) {
+define('bike-rent-app/serializers/bicycle', ['exports', 'ember-data', 'bike-rent-app/serializers/application'], function (exports, _emberData, _application) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = _application.default.extend({
-    // attrs: {
-    //     trips: {
-    //       serialize: 'records',
-    //       deserialize: 'records'
-    //     }
-    //   },
+  exports.default = _application.default.extend(_emberData.default.EmbeddedRecordsMixin, {
+    attrs: {
+      points: {
+        serialize: false,
+        deserialize: 'records'
+      }
+    },
+
+    normalize(model, hash) {
+      hash = this._super(...arguments);
+      return hash;
+    }
+  });
+});
+define('bike-rent-app/serializers/point', ['exports', 'ember-data', 'bike-rent-app/serializers/application'], function (exports, _emberData, _application) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _application.default.extend(_emberData.default.EmbeddedRecordsMixin, {
+    attrs: {
+      trips: { embedded: "always" }
+    },
 
     normalize(model, hash) {
       hash = this._super(...arguments);
@@ -1700,7 +1951,7 @@ define("bike-rent-app/templates/application", ["exports"], function (exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "SMEhTBKL", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"app\"],[8],[0,\"\\n  \"],[6,\"nav\"],[10,\"class\",\"main-nav\"],[8],[0,\"\\n    \"],[6,\"h1\"],[10,\"class\",\"logo\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"index\"],null,{\"statements\":[[0,\"        \"],[6,\"img\"],[10,\"src\",\"/Bike-icon.png\"],[10,\"alt\",\"Bike Rent\"],[8],[9],[0,\"\\n        \"],[6,\"span\"],[10,\"class\",\"sr-only\"],[8],[0,\"Bike Rent\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"    \"],[9],[0,\"\\n\\n    \"],[6,\"ul\"],[8],[0,\"\\n      \"],[6,\"li\"],[8],[4,\"link-to\",[\"bicycle\"],null,{\"statements\":[[0,\"Bicycles\"]],\"parameters\":[]},null],[9],[0,\"\\n      \"],[6,\"li\"],[8],[4,\"link-to\",[\"history\"],null,{\"statements\":[[0,\"History\"]],\"parameters\":[]},null],[9],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\\n  \"],[6,\"main\"],[10,\"class\",\"app-content\"],[8],[1,[20,\"outlet\"],false],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/application.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "ragQMJOZ", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"app\"],[8],[0,\"\\n  \"],[6,\"nav\"],[10,\"class\",\"main-nav\"],[8],[0,\"\\n    \"],[6,\"h1\"],[10,\"class\",\"logo\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"index\"],null,{\"statements\":[[0,\"        \"],[6,\"img\"],[10,\"src\",\"/Bike-icon.png\"],[10,\"alt\",\"Bike Rent\"],[8],[9],[0,\"\\n        \"],[6,\"span\"],[10,\"class\",\"sr-only\"],[8],[0,\"Bike Rent\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"    \"],[9],[0,\"\\n\\n    \"],[6,\"ul\"],[8],[0,\"\\n      \"],[6,\"li\"],[8],[4,\"link-to\",[\"bicycle\"],null,{\"statements\":[[0,\"Bicycles\"]],\"parameters\":[]},null],[9],[0,\"\\n      \"],[6,\"li\"],[8],[4,\"link-to\",[\"point\"],null,{\"statements\":[[0,\"Rent points\"]],\"parameters\":[]},null],[9],[0,\"\\n      \"],[6,\"li\"],[8],[4,\"link-to\",[\"history\"],null,{\"statements\":[[0,\"History\"]],\"parameters\":[]},null],[9],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\\n  \"],[6,\"main\"],[10,\"class\",\"app-content\"],[8],[1,[20,\"outlet\"],false],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/application.hbs" } });
 });
 define("bike-rent-app/templates/bicycle", ["exports"], function (exports) {
   "use strict";
@@ -1724,15 +1975,15 @@ define("bike-rent-app/templates/bicycle/detail", ["exports"], function (exports)
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "qpM4bVp4", "block": "{\"symbols\":[\"trip\"],\"statements\":[[6,\"div\"],[10,\"class\",\"slide-out-bg\"],[8],[9],[0,\"\\n\\n\"],[6,\"div\"],[10,\"class\",\"slide-out\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"slide-out-card\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"bicycle.index\"],[[\"class\"],[\"btn-back\"]],{\"statements\":[[0,\"      \"],[6,\"span\"],[10,\"class\",\"sr-only\"],[8],[0,\"Back\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-heading\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n        \"],[6,\"h3\"],[8],[0,\"Model \\\"\"],[1,[22,[\"model\",\"brand\"]],false],[0,\"\\\"\"],[9],[0,\"\\n        \"],[6,\"div\"],[10,\"class\",\"actions\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"bicycle.edit\",[22,[\"model\",\"id\"]]],[[\"class\"],[\"btn-pop\"]],{\"statements\":[[0,\"            edit\\n\"]],\"parameters\":[]},null],[0,\"\\n          \"],[6,\"button\"],[10,\"class\",\"btn-recessed\"],[11,\"onclick\",[26,\"action\",[[21,0,[]],\"deleteBicycle\",[22,[\"model\"]]],null],null],[8],[0,\"delete\"],[9],[0,\"\\n        \"],[9],[0,\"       \\n      \"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"details\"],[8],[0,\"\\n        \"],[6,\"p\"],[8],[0,\"\\n          \"],[6,\"strong\"],[8],[0,\"Rent is\"],[9],[0,\" \\n          \"],[1,[22,[\"model\",\"pricePerHour\"]],false],[0,\"$ per hour\\n        \"],[9],[0,\"        \\n      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-content\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n        \"],[6,\"h3\"],[8],[0,\"Number of rides for this bike: \"],[1,[22,[\"model\",\"trips\",\"length\"]],false],[9],[0,\"        \\n      \"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n        \"],[6,\"h3\"],[8],[0,\"Average rent time is: \"],[1,[22,[\"model\",\"averageRentTime\"]],false],[9],[0,\"\\n      \"],[9],[0,\"\\n\\n      \"],[6,\"div\"],[10,\"class\",\"actions\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"bicycle.detail.new-trip\",[22,[\"model\",\"id\"]]],[[\"class\"],[\"btn-secondary btn-add\"]],{\"statements\":[[0,\"          Add a trip\\n\"]],\"parameters\":[]},null],[0,\"      \"],[9],[0,\"\\n      \"],[6,\"ul\"],[10,\"class\",\"book-list\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"model\",\"trips\"]]],null,{\"statements\":[[0,\"          \"],[6,\"li\"],[10,\"class\",\"book\"],[8],[0,\"\\n            \"],[6,\"p\"],[10,\"class\",\"book-title\"],[8],[0,\"\\n              Rent location is: \"],[1,[21,1,[\"rentPoint\"]],false],[0,\"\\n            \"],[9],[0,\"\\n            \"],[6,\"p\"],[10,\"class\",\"book-isbn\"],[8],[0,\"\\n              Rent hours are: \"],[6,\"strong\"],[8],[1,[21,1,[\"rentHours\"]],false],[9],[0,\"\\n            \"],[9],[0,\"\\n          \"],[9],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\"],[1,[20,\"outlet\"],false]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/bicycle/detail.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "MPcsMwdT", "block": "{\"symbols\":[\"point\"],\"statements\":[[6,\"div\"],[10,\"class\",\"slide-out-bg\"],[8],[9],[0,\"\\n\\n\"],[6,\"div\"],[10,\"class\",\"slide-out\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"slide-out-card\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"bicycle.index\"],[[\"class\"],[\"btn-back\"]],{\"statements\":[[0,\"      \"],[6,\"span\"],[10,\"class\",\"sr-only\"],[8],[0,\"Back\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-heading\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n        \"],[6,\"h3\"],[8],[0,\"Model \\\"\"],[1,[22,[\"model\",\"brand\"]],false],[0,\"\\\"\"],[9],[0,\"\\n        \"],[6,\"div\"],[10,\"class\",\"actions\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"bicycle.edit\",[22,[\"model\",\"id\"]]],[[\"class\"],[\"btn-pop\"]],{\"statements\":[[0,\"            edit\\n\"]],\"parameters\":[]},null],[0,\"\\n          \"],[6,\"button\"],[10,\"class\",\"btn-recessed\"],[11,\"onclick\",[26,\"action\",[[21,0,[]],\"deleteBicycle\",[22,[\"model\"]]],null],null],[8],[0,\"delete\"],[9],[0,\"\\n        \"],[9],[0,\"       \\n      \"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"details\"],[8],[0,\"\\n        \"],[6,\"p\"],[8],[0,\"\\n          \"],[6,\"strong\"],[8],[0,\"Rent is\"],[9],[0,\" \\n          \"],[1,[22,[\"model\",\"pricePerHour\"]],false],[0,\"$ per hour\\n        \"],[9],[0,\"        \\n      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-content\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"actions\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"bicycle.detail.new-point\",[22,[\"model\",\"id\"]]],[[\"class\"],[\"btn-secondary btn-add\"]],{\"statements\":[[0,\"          Add a point\\n\"]],\"parameters\":[]},null],[0,\"      \"],[9],[0,\"\\n      \"],[6,\"ul\"],[10,\"class\",\"book-list\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"model\",\"points\"]]],null,{\"statements\":[[0,\"          \"],[6,\"li\"],[10,\"class\",\"book\"],[8],[0,\"\\n            \"],[6,\"p\"],[10,\"class\",\"book-title\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"point.detail\",[21,1,[]]],null,{\"statements\":[[0,\"                Rent location is: \"],[1,[21,1,[\"rentPoint\"]],false],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"            \"],[9],[0,\"\\n          \"],[9],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\"],[1,[20,\"outlet\"],false]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/bicycle/detail.hbs" } });
 });
-define("bike-rent-app/templates/bicycle/detail/new-trip", ["exports"], function (exports) {
+define("bike-rent-app/templates/bicycle/detail/new-point", ["exports"], function (exports) {
   "use strict";
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "9+bSUZm2", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"modal\"],[8],[0,\"\\n  \"],[6,\"form\"],[10,\"class\",\"modal-card\"],[11,\"onsubmit\",[26,\"action\",[[21,0,[]],\"saveTrip\"],null],null],[8],[0,\"\\n    \"],[6,\"h3\"],[10,\"class\",\"modal-heading\"],[8],[0,\"Add New Trip for \"],[1,[22,[\"model\",\"bicycle\",\"brand\"]],false],[0,\" \"],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"modal-content\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n        \"],[6,\"label\"],[8],[0,\"Renting hours:\"],[9],[0,\"\\n        \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"text\",\"Trip Time(In hours)\",[22,[\"model\",\"trip\",\"rentHours\"]]]]],false],[0,\"\\n        \\n\"],[4,\"if\",[[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentHours\"],null],\"isInvalid\"],null]],null,{\"statements\":[[0,\"          \"],[6,\"span\"],[10,\"class\",\"error-message\"],[8],[0,\"\\n            \"],[1,[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentHours\"],null],\"message\"],null],false],[0,\"\\n          \"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"      \"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n        \"],[6,\"label\"],[8],[0,\"Rent point:\"],[9],[0,\"\\n        \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"text\",\"Rent point\",[22,[\"model\",\"trip\",\"rentPoint\"]]]]],false],[0,\"\\n\\n\"],[4,\"if\",[[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentPoint\"],null],\"isInvalid\"],null]],null,{\"statements\":[[0,\"          \"],[6,\"span\"],[10,\"class\",\"error-message\"],[8],[0,\"\\n            \"],[1,[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentPoint\"],null],\"message\"],null],false],[0,\"\\n          \"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"      \"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n        \"],[6,\"label\"],[8],[0,\"Renting date is (YYYY-MM-DD):\"],[9],[0,\"\\n        \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"text\",\"Renting date\",[22,[\"model\",\"trip\",\"rentDate\"]]]]],false],[0,\"\\n\\n\"],[4,\"if\",[[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentDate\"],null],\"isInvalid\"],null]],null,{\"statements\":[[0,\"          \"],[6,\"span\"],[10,\"class\",\"error-message\"],[8],[0,\"\\n            \"],[1,[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentDate\"],null],\"message\"],null],false],[0,\"\\n          \"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"modal-footer\"],[8],[0,\"\\n      \"],[4,\"link-to\",[\"bicycle.detail\",[22,[\"model\",\"bicycle\",\"id\"]]],[[\"class\"],[\"btn-clear\"]],{\"statements\":[[0,\"Cancel\"]],\"parameters\":[]},null],[0,\"\\n      \"],[6,\"button\"],[10,\"class\",\"btn-submit\"],[10,\"type\",\"submit\"],[8],[0,\"Submit\"],[9],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/bicycle/detail/new-trip.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "rdw34WW2", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"modal\"],[8],[0,\"\\n  \"],[6,\"form\"],[10,\"class\",\"modal-card\"],[11,\"onsubmit\",[26,\"action\",[[21,0,[]],\"savePoint\"],null],null],[8],[0,\"\\n    \"],[6,\"h3\"],[10,\"class\",\"modal-heading\"],[8],[0,\"Add New Rent Point for \"],[1,[22,[\"model\",\"bicycle\",\"brand\"]],false],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"modal-content\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n        \"],[6,\"label\"],[8],[0,\"Rent Point is:\"],[9],[0,\"\\n        \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"text\",\"Rent Point Name\",[22,[\"model\",\"point\",\"rentPoint\"]]]]],false],[0,\"\\n      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"modal-footer\"],[8],[0,\"\\n      \"],[4,\"link-to\",[\"bicycle.detail\",[22,[\"model\",\"bicycle\",\"id\"]]],[[\"class\"],[\"btn-clear\"]],{\"statements\":[[0,\"Cancel\"]],\"parameters\":[]},null],[0,\"\\n      \"],[6,\"button\"],[10,\"class\",\"btn-submit\"],[10,\"type\",\"submit\"],[8],[0,\"Submit\"],[9],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/bicycle/detail/new-point.hbs" } });
 });
 define("bike-rent-app/templates/bicycle/edit", ["exports"], function (exports) {
   "use strict";
@@ -1772,7 +2023,23 @@ define("bike-rent-app/templates/components/history-item", ["exports"], function 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "jTxlfnVi", "block": "{\"symbols\":[],\"statements\":[[4,\"link-to\",[\"bicycle.detail\",[22,[\"bicycleId\"]]],null,{\"statements\":[[0,\"  \"],[1,[26,\"get-trip-name\",[[22,[\"rentPoint\"]],[22,[\"rentHours\"]],[22,[\"rentDate\"]],[22,[\"bicycleId\"]]],null],false],[0,\"\\n\"]],\"parameters\":[]},null]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/components/history-item.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "eJJ249P6", "block": "{\"symbols\":[],\"statements\":[[4,\"link-to\",[\"point.detail\",[22,[\"pointId\"]]],null,{\"statements\":[[0,\"  \"],[1,[26,\"get-trip-name\",[[22,[\"rentHours\"]],[22,[\"rentDate\"]],[22,[\"pointName\"]]],null],false],[0,\"\\n\"]],\"parameters\":[]},null]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/components/history-item.hbs" } });
+});
+define("bike-rent-app/templates/components/point-form", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "E/dvVwbW", "block": "{\"symbols\":[\"bicycle\"],\"statements\":[[6,\"form\"],[11,\"onsubmit\",[26,\"action\",[[21,0,[]],\"savePoint\"],null],null],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n    \"],[6,\"label\"],[8],[0,\"Rent Point:\"],[9],[0,\"\\n    \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"text\",\"Rent Point\",[22,[\"rentPoint\"]]]]],false],[0,\"\\n  \"],[9],[0,\"\\n\\n  \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n    \"],[6,\"label\"],[8],[0,\"Bicycle:\"],[9],[0,\"\\n    \"],[6,\"p\"],[10,\"class\",\"control\"],[8],[0,\"\\n\"],[4,\"power-select\",null,[[\"searchEnabled\",\"onchange\",\"selected\",\"search\"],[true,[26,\"action\",[[21,0,[]],[26,\"mut\",[[22,[\"bicycle\"]]],null]],null],[22,[\"bicycle\"]],[26,\"action\",[[21,0,[]],\"searchBicycle\"],null]]],{\"statements\":[[0,\"        \"],[1,[21,1,[\"brand\"]],false],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"form-footer\"],[8],[0,\"\\n    \"],[6,\"button\"],[10,\"class\",\"btn-submit\"],[10,\"type\",\"submit\"],[8],[0,\"Save\"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/components/point-form.hbs" } });
+});
+define("bike-rent-app/templates/components/point-item", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "K3af0uT1", "block": "{\"symbols\":[],\"statements\":[[4,\"link-to\",[\"point.detail\",[22,[\"idPoint\"]]],null,{\"statements\":[[0,\"  \"],[1,[26,\"get-point-name\",[[22,[\"rentPoint\"]],[22,[\"bicycleItself\"]],[22,[\"avgRentTime\"]]],null],false],[0,\"\\n\"]],\"parameters\":[]},null]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/components/point-item.hbs" } });
 });
 define("bike-rent-app/templates/components/trip-form", ["exports"], function (exports) {
   "use strict";
@@ -1780,7 +2047,7 @@ define("bike-rent-app/templates/components/trip-form", ["exports"], function (ex
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "6nBA1WkK", "block": "{\"symbols\":[\"&default\"],\"statements\":[[13,1]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/components/trip-form.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "Uj8ipglw", "block": "{\"symbols\":[],\"statements\":[[6,\"form\"],[11,\"onsubmit\",[26,\"action\",[[21,0,[]],\"saveTrip\"],null],null],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n    \"],[6,\"label\"],[8],[0,\"Renting hours:\"],[9],[0,\"\\n    \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"text\",\"Trip Time(In hours)\",[22,[\"rentHours\"]]]]],false],[0,\"\\n    \\n\"],[4,\"if\",[[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentHours\"],null],\"isInvalid\"],null]],null,{\"statements\":[[0,\"      \"],[6,\"span\"],[10,\"class\",\"error-message\"],[8],[0,\"\\n        \"],[1,[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentHours\"],null],\"message\"],null],false],[0,\"\\n      \"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"  \"],[9],[0,\"\\n\\n  \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n    \"],[6,\"label\"],[8],[0,\"Renting date is:\"],[9],[0,\"\\n    \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"date\",\"Trip Date\",[22,[\"rentDate\"]]]]],false],[0,\"\\n    \\n\"],[4,\"if\",[[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentDate\"],null],\"isInvalid\"],null]],null,{\"statements\":[[0,\"      \"],[6,\"span\"],[10,\"class\",\"error-message\"],[8],[0,\"\\n        \"],[1,[26,\"get\",[[26,\"get\",[[21,0,[\"validations\",\"attrs\"]],\"rentDate\"],null],\"message\"],null],false],[0,\"\\n      \"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"  \"],[9],[0,\"\\n\\n  \"],[6,\"div\"],[10,\"class\",\"form-footer\"],[8],[0,\"\\n    \"],[4,\"link-to\",[\"point.detail\",[22,[\"point\",\"id\"]]],[[\"class\"],[\"btn-reset\"]],{\"statements\":[[0,\"Reset\"]],\"parameters\":[]},null],[0,\"\\n    \"],[6,\"button\"],[10,\"class\",\"btn-submit\"],[10,\"type\",\"submit\"],[8],[0,\"Save\"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/components/trip-form.hbs" } });
 });
 define("bike-rent-app/templates/error", ["exports"], function (exports) {
   "use strict";
@@ -1796,7 +2063,7 @@ define("bike-rent-app/templates/history", ["exports"], function (exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "aYnGilBb", "block": "{\"symbols\":[\"trip\",\"trip\"],\"statements\":[[6,\"div\"],[10,\"class\",\"panel-content\"],[8],[0,\"\\n  \"],[6,\"h3\"],[10,\"class\",\"panel-title\"],[8],[0,\"Rent history among all bicycles\"],[9],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n    \"],[6,\"label\"],[8],[0,\"Rent point:\"],[9],[0,\"\\n    \"],[6,\"p\"],[10,\"class\",\"control\"],[8],[0,\"\\n\"],[4,\"power-select\",null,[[\"placeholder\",\"selected\",\"searchEnabled\",\"onchange\",\"search\",\"searchField\",\"allowClear\"],[\"Select a renting point\",[22,[\"trip\"]],true,[26,\"action\",[[21,0,[]],[26,\"mut\",[[22,[\"trip\"]]],null]],null],[26,\"action\",[[21,0,[]],\"searchTrip\"],null],\"rentPoint\",true]],{\"statements\":[[0,\"        \"],[1,[21,2,[\"rentPoint\"]],false],[0,\"\\n\"]],\"parameters\":[2]},null],[0,\"    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\\n  \"],[6,\"ul\"],[10,\"class\",\"collection\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"model\"]]],null,{\"statements\":[[0,\"      \"],[1,[26,\"history-item\",null,[[\"rentPoint\",\"rentHours\",\"rentDate\",\"bicycleId\",\"tagName\"],[[21,1,[\"rentPoint\"]],[21,1,[\"rentHours\"]],[21,1,[\"rentDate\"]],[21,1,[\"bicycleId\"]],\"li\"]]],false],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\"],[1,[20,\"outlet\"],false]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/history.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "ew05WYWu", "block": "{\"symbols\":[\"trip\",\"trip\"],\"statements\":[[6,\"div\"],[10,\"class\",\"panel-content\"],[8],[0,\"\\n  \"],[6,\"h3\"],[10,\"class\",\"panel-title\"],[8],[0,\"Rent history among all bicycles\"],[9],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"field\"],[8],[0,\"\\n    \"],[6,\"label\"],[8],[0,\"Rent point:\"],[9],[0,\"\\n    \"],[6,\"p\"],[10,\"class\",\"control\"],[8],[0,\"\\n\"],[4,\"power-select\",null,[[\"placeholder\",\"selected\",\"searchEnabled\",\"onchange\",\"search\",\"searchField\",\"allowClear\"],[\"Select a renting point\",[22,[\"trip\"]],true,[26,\"action\",[[21,0,[]],[26,\"mut\",[[22,[\"trip\"]]],null]],null],[26,\"action\",[[21,0,[]],\"searchTrip\"],null],\"rentPoint\",true]],{\"statements\":[[0,\"        \"],[1,[21,2,[\"point\",\"rentPoint\"]],false],[0,\"\\n\"]],\"parameters\":[2]},null],[0,\"    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\\n  \"],[6,\"ul\"],[10,\"class\",\"collection\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"model\"]]],null,{\"statements\":[[0,\"      \"],[1,[26,\"history-item\",null,[[\"rentHours\",\"rentDate\",\"pointName\",\"pointId\",\"tagName\"],[[21,1,[\"rentHours\"]],[21,1,[\"rentDate\"]],[21,1,[\"point\",\"rentPoint\"]],[21,1,[\"point\",\"id\"]],\"li\"]]],false],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\"],[1,[20,\"outlet\"],false]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/history.hbs" } });
 });
 define("bike-rent-app/templates/index", ["exports"], function (exports) {
   "use strict";
@@ -1813,6 +2080,54 @@ define("bike-rent-app/templates/loading", ["exports"], function (exports) {
     value: true
   });
   exports.default = Ember.HTMLBars.template({ "id": "XVPmAIdI", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[8],[0,\"\\n  \"],[6,\"img\"],[10,\"src\",\"/loading.gif\"],[10,\"alt\",\"Loading...\"],[8],[9],[0,\"\\n\"],[9]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/loading.hbs" } });
+});
+define("bike-rent-app/templates/point", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "H4VkHCM8", "block": "{\"symbols\":[\"point\"],\"statements\":[[6,\"div\"],[10,\"class\",\"panel-heading\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"search\"],[8],[0,\"\\n    \"],[1,[26,\"input\",null,[[\"type\",\"placeholder\",\"value\"],[\"text\",\"Search by Renting point name\",[22,[\"search\"]]]]],false],[0,\"\\n  \"],[9],[0,\"\\n\\n\"],[4,\"link-to\",[\"point.create\"],[[\"class\"],[\"btn-new\"]],{\"statements\":[[0,\"    \"],[6,\"div\"],[10,\"class\",\"sr-only\"],[8],[0,\"Add new Rent point\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[9],[0,\"\\n\\n\"],[6,\"div\"],[10,\"class\",\"panel-content\"],[8],[0,\"\\n  \"],[6,\"h3\"],[10,\"class\",\"panel-title\"],[8],[0,\"Rent points with corresponding bicycles\"],[9],[0,\"\\n\\n  \"],[6,\"ul\"],[10,\"class\",\"collection\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"model\"]]],null,{\"statements\":[[0,\"      \"],[1,[26,\"point-item\",null,[[\"rentPoint\",\"idPoint\",\"avgRentTime\",\"bicycleItself\",\"tagName\"],[[21,1,[\"rentPoint\"]],[21,1,[\"id\"]],[21,1,[\"averageRentTime\"]],[21,1,[\"bicycle\",\"brand\"]],\"li\"]]],false],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\"],[1,[20,\"outlet\"],false]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/point.hbs" } });
+});
+define("bike-rent-app/templates/point/create", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "3dRINRbo", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"slide-out-bg\"],[8],[9],[0,\"\\n\"],[6,\"div\"],[10,\"class\",\"slide-out\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"slide-out-card\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"point.index\"],[[\"class\"],[\"btn-back\"]],{\"statements\":[[0,\"      \"],[6,\"span\"],[10,\"class\",\"sr-only\"],[8],[0,\"Back\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-heading\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n        \"],[6,\"h3\"],[8],[0,\"New Rent Point\"],[9],[0,\"\\n      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-content\"],[8],[0,\"\\n      \"],[1,[26,\"point-form\",null,[[\"point\",\"onSubmit\"],[[22,[\"model\"]],[26,\"action\",[[21,0,[]],\"savePoint\"],null]]]],false],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/point/create.hbs" } });
+});
+define("bike-rent-app/templates/point/detail", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "PIziZOv4", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"slide-out-bg\"],[8],[9],[0,\"\\n\\n\"],[6,\"div\"],[10,\"class\",\"slide-out\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"slide-out-card\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"point.index\"],[[\"class\"],[\"btn-back\"]],{\"statements\":[[0,\"      \"],[6,\"span\"],[10,\"class\",\"sr-only\"],[8],[0,\"Back\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-heading\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n        \"],[6,\"h3\"],[8],[1,[21,0,[\"model\",\"rentPoint\"]],false],[9],[0,\"\\n\\n        \"],[6,\"div\"],[10,\"class\",\"actions\"],[8],[0,\"\\n          \"],[4,\"link-to\",[\"point.edit\",[22,[\"model\",\"id\"]]],[[\"class\"],[\"btn-pop\"]],{\"statements\":[[0,\"edit\"]],\"parameters\":[]},null],[0,\"\\n\\n          \"],[6,\"button\"],[10,\"class\",\"btn-recessed\"],[11,\"onclick\",[26,\"action\",[[21,0,[]],\"deletePoint\"],null],null],[8],[0,\"delete\"],[9],[0,\"\\n        \"],[9],[0,\"\\n      \"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"details\"],[8],[0,\"\\n        \"],[6,\"p\"],[8],[0,\"\\n          \"],[6,\"strong\"],[8],[0,\"Bicycle:\"],[9],[0,\"\\n\"],[4,\"link-to\",[\"bicycle.detail\",[22,[\"model\",\"bicycle\",\"id\"]]],null,{\"statements\":[[0,\"            \"],[1,[22,[\"model\",\"bicycle\",\"brand\"]],false],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"        \"],[9],[0,\"\\n        \"],[6,\"p\"],[8],[0,\"\\n          \"],[6,\"strong\"],[8],[0,\"Average bicycle trip time:\"],[9],[0,\"\\n          \"],[1,[22,[\"model\",\"averageRentTime\"]],false],[0,\"\\n        \"],[9],[0,\"\\n      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[1,[26,\"outlet\",null,[[\"class\"],[\"no-overflow\"]]],false],[0,\"\\n  \"],[9],[0,\"\\n\"],[9]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/point/detail.hbs" } });
+});
+define("bike-rent-app/templates/point/detail/index", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "RxTShxOQ", "block": "{\"symbols\":[\"trip\"],\"statements\":[[6,\"div\"],[10,\"class\",\"slide-out-content\"],[8],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n      \"],[6,\"h3\"],[8],[1,[22,[\"model\",\"trips\",\"length\"]],false],[0,\" Trips\"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"actions\"],[8],[0,\"\\n        \"],[4,\"link-to\",[\"point.detail.new-trip\",[22,[\"model\",\"id\"]]],[[\"class\"],[\"btn-secondary btn-add btn\"]],{\"statements\":[[0,\"Add a trip\"]],\"parameters\":[]},null],[0,\"\\n      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[6,\"ul\"],[10,\"class\",\"review-list\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"model\",\"trips\"]]],null,{\"statements\":[[0,\"        \"],[6,\"li\"],[10,\"class\",\"review\"],[8],[0,\"\\n          \"],[6,\"p\"],[8],[0,\"Trip time is: \"],[6,\"strong\"],[8],[1,[21,1,[\"rentHours\"]],false],[9],[0,\" hours\"],[9],[0,\"\\n          \"],[6,\"div\"],[10,\"class\",\"details\"],[8],[0,\"\\n            \"],[6,\"p\"],[8],[0,\"\\n              \"],[6,\"strong\"],[8],[0,\"Renting Date:\"],[9],[0,\"\\n              \"],[1,[26,\"moment-format\",[[21,1,[\"rentDate\"]],\"Do MMMM YYYY\"],null],false],[0,\"\\n            \"],[9],[0,\"\\n          \"],[9],[0,\"\\n        \"],[9],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"    \"],[9],[0,\"\\n  \"],[9]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/point/detail/index.hbs" } });
+});
+define("bike-rent-app/templates/point/detail/new-trip", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "EZSrS/qe", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"slide-out-content\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n    \"],[6,\"h3\"],[8],[0,\"New Trip for \"],[1,[22,[\"model\",\"point\",\"rentPoint\"]],false],[9],[0,\"\\n  \"],[9],[0,\"\\n\\n  \"],[1,[26,\"trip-form\",null,[[\"trip\",\"point\",\"onSubmit\"],[[22,[\"model\",\"trip\"]],[22,[\"model\",\"point\"]],[26,\"action\",[[21,0,[]],\"saveTrip\"],null]]]],false],[0,\"\\n\"],[9]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/point/detail/new-trip.hbs" } });
+});
+define("bike-rent-app/templates/point/edit", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "8HhLrCg1", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[10,\"class\",\"slide-out-bg\"],[8],[9],[0,\"\\n\"],[6,\"div\"],[10,\"class\",\"slide-out\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"slide-out-card\"],[8],[0,\"\\n\"],[4,\"link-to\",[\"point.index\"],[[\"class\"],[\"btn-back\"]],{\"statements\":[[0,\"      \"],[6,\"span\"],[10,\"class\",\"sr-only\"],[8],[0,\"Back\"],[9],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-heading\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"title\"],[8],[0,\"\\n        \"],[6,\"h3\"],[8],[0,\"Editing \\\"\"],[6,\"strong\"],[8],[1,[22,[\"model\",\"rentPoint\"]],false],[9],[0,\"\\\" renting point\"],[9],[0,\"\\n      \"],[9],[0,\"\\n    \"],[9],[0,\"\\n\\n    \"],[6,\"div\"],[10,\"class\",\"slide-out-content\"],[8],[0,\"\\n      \"],[1,[26,\"point-form\",null,[[\"point\",\"onSubmit\"],[[22,[\"model\"]],[26,\"action\",[[21,0,[]],\"savePoint\"],null]]]],false],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9]],\"hasEval\":false}", "meta": { "moduleName": "bike-rent-app/templates/point/edit.hbs" } });
 });
 define('bike-rent-app/transforms/date-string', ['exports', 'ember-data/transforms/date'], function (exports, _date) {
   'use strict';
@@ -2055,6 +2370,6 @@ catch(err) {
 });
 
 if (!runningTests) {
-  require("bike-rent-app/app")["default"].create({"name":"bike-rent-app","version":"0.0.0+768eff33"});
+  require("bike-rent-app/app")["default"].create({"name":"bike-rent-app","version":"0.0.0+a4ef84ae"});
 }
 //# sourceMappingURL=bike-rent-app.map

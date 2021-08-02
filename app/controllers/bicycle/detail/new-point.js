@@ -2,11 +2,11 @@ import Controller from '@ember/controller';
 
 export default Controller.extend({
   actions: {
-    async saveTrip(e) {
+    async savePoint(e) {
       try {
         e.preventDefault();
-        let newTrip = this.get('store').createRecord('trip', this.get('model.trip'));
-        await newTrip.save();
+        let newPoint = this.get('store').createRecord('point', this.get('model.point'));
+        await newPoint.save();
 
         this.transitionToRoute('bicycle.detail', this.get('model.bicycle.id'));
       }

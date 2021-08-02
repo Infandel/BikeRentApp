@@ -2,12 +2,12 @@ import { helper } from '@ember/component/helper';
 import { htmlSafe } from '@ember/string';
 
 export function getTripName(params/*, hash*/) {
-  let [rentPoint, rentHours, rentDate, bicycleId] = params;    
+  let [rentHours, rentDate, pointName] = params;    
   return htmlSafe(
-    `Rent point is <strong>${rentPoint}</strong>. 
-    Bike was rented for<strong>${rentHours} hours</strong>.
-    Renting date is ${rentDate}.
-    and bicycle ID is ${bicycleId}`);
+    `Bike was rented for <strong>${rentHours} hours</strong>
+    at the ${pointName} point
+    on ${rentDate}
+    `);
 }
 
 export default helper(getTripName);

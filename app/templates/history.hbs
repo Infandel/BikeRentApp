@@ -12,7 +12,7 @@
         searchField="rentPoint"
         allowClear=true
         as |trip| }}
-        {{trip.rentPoint}}
+        {{trip.point.rentPoint}}
       {{/power-select}}
     </p>
   </div>
@@ -20,13 +20,12 @@
   <ul class="collection">
     {{#each model as |trip|}}
       {{history-item 
-      rentPoint=trip.rentPoint 
       rentHours=trip.rentHours
       rentDate=trip.rentDate
-      bicycleId=trip.bicycleId
+      pointName=trip.point.rentPoint
+      pointId=trip.point.id
       tagName='li'}}
     {{/each}}
   </ul>
 </div>
-
 {{outlet}}

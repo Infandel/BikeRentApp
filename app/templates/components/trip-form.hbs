@@ -1,1 +1,28 @@
-{{yield}}
+<form onsubmit={{action "saveTrip"}}>
+  <div class="field">
+    <label>Renting hours:</label>
+    {{input type="text" placeholder="Trip Time(In hours)" value=rentHours}}
+    
+    {{#if (v-get this 'rentHours' 'isInvalid')}}
+      <span class="error-message">
+        {{v-get this 'rentHours' 'message'}}
+      </span>
+    {{/if}}
+  </div>
+
+  <div class="field">
+    <label>Renting date is:</label>
+    {{input type="date" placeholder="Trip Date" value=rentDate}}
+    
+    {{#if (v-get this 'rentDate' 'isInvalid')}}
+      <span class="error-message">
+        {{v-get this 'rentDate' 'message'}}
+      </span>
+    {{/if}}
+  </div>
+
+  <div class="form-footer">
+    {{#link-to "point.detail" point.id class="btn-reset"}}Reset{{/link-to}}
+    <button type="submit" class="btn-submit">Save</button>
+  </div>
+</form>

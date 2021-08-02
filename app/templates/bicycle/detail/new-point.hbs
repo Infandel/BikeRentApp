@@ -1,0 +1,17 @@
+<div class="modal">
+  <form class="modal-card" onsubmit={{action "savePoint"}}>
+    <h3 class="modal-heading">Add New Rent Point for {{model.bicycle.brand}}</h3>
+
+    <div class="modal-content">
+      <div class="field">
+        <label>Rent Point is:</label>
+        {{input type="text" placeholder="Rent Point Name" value=model.point.rentPoint}}
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      {{#link-to "bicycle.detail" model.bicycle.id class="btn-clear"}}Cancel{{/link-to}}
+      <button type="submit" class="btn-submit">Submit</button>
+    </div>
+  </form>
+</div>

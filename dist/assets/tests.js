@@ -30,6 +30,16 @@ define('bike-rent-app/tests/app.lint-test', [], function () {
     assert.ok(true, 'components/history-item.js should pass ESLint\n\n');
   });
 
+  QUnit.test('components/point-form.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'components/point-form.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('components/point-item.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'components/point-item.js should pass ESLint\n\n');
+  });
+
   QUnit.test('components/trip-form.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'components/trip-form.js should pass ESLint\n\n');
@@ -50,9 +60,9 @@ define('bike-rent-app/tests/app.lint-test', [], function () {
     assert.ok(true, 'controllers/bicycle/detail.js should pass ESLint\n\n');
   });
 
-  QUnit.test('controllers/bicycle/detail/new-trip.js', function (assert) {
+  QUnit.test('controllers/bicycle/detail/new-point.js', function (assert) {
     assert.expect(1);
-    assert.ok(true, 'controllers/bicycle/detail/new-trip.js should pass ESLint\n\n');
+    assert.ok(true, 'controllers/bicycle/detail/new-point.js should pass ESLint\n\n');
   });
 
   QUnit.test('controllers/bicycle/edit.js', function (assert) {
@@ -65,9 +75,39 @@ define('bike-rent-app/tests/app.lint-test', [], function () {
     assert.ok(true, 'controllers/history.js should pass ESLint\n\n');
   });
 
+  QUnit.test('controllers/point.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/point.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('controllers/point/create.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/point/create.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('controllers/point/detail.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/point/detail.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('controllers/point/detail/new-trip.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/point/detail/new-trip.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('controllers/point/edit.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/point/edit.js should pass ESLint\n\n');
+  });
+
   QUnit.test('helpers/get-bicycle-name.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'helpers/get-bicycle-name.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('helpers/get-point-name.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'helpers/get-point-name.js should pass ESLint\n\n');
   });
 
   QUnit.test('helpers/get-trip-name.js', function (assert) {
@@ -78,6 +118,11 @@ define('bike-rent-app/tests/app.lint-test', [], function () {
   QUnit.test('models/bicycle.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'models/bicycle.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('models/point.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'models/point.js should pass ESLint\n\n');
   });
 
   QUnit.test('models/trip.js', function (assert) {
@@ -120,9 +165,9 @@ define('bike-rent-app/tests/app.lint-test', [], function () {
     assert.ok(true, 'routes/bicycle/detail.js should pass ESLint\n\n');
   });
 
-  QUnit.test('routes/bicycle/detail/new-trip.js', function (assert) {
+  QUnit.test('routes/bicycle/detail/new-point.js', function (assert) {
     assert.expect(1);
-    assert.ok(true, 'routes/bicycle/detail/new-trip.js should pass ESLint\n\n');
+    assert.ok(true, 'routes/bicycle/detail/new-point.js should pass ESLint\n\n');
   });
 
   QUnit.test('routes/bicycle/edit.js', function (assert) {
@@ -145,6 +190,36 @@ define('bike-rent-app/tests/app.lint-test', [], function () {
     assert.ok(true, 'routes/index.js should pass ESLint\n\n');
   });
 
+  QUnit.test('routes/point.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/point.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('routes/point/create.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/point/create.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('routes/point/detail.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/point/detail.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('routes/point/detail/index.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/point/detail/index.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('routes/point/detail/new-trip.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/point/detail/new-trip.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('routes/point/edit.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/point/edit.js should pass ESLint\n\n');
+  });
+
   QUnit.test('serializers/application.js', function (assert) {
     assert.expect(1);
     assert.ok(false, 'serializers/application.js should pass ESLint\n\n5:20 - \'hash\' is defined but never used. (no-unused-vars)\n9:38 - \'method\' is defined but never used. (no-unused-vars)\n16:46 - \'relationshipHash\' is defined but never used. (no-unused-vars)');
@@ -153,6 +228,11 @@ define('bike-rent-app/tests/app.lint-test', [], function () {
   QUnit.test('serializers/bicycle.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'serializers/bicycle.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('serializers/point.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'serializers/point.js should pass ESLint\n\n');
   });
 
   QUnit.test('serializers/trip.js', function (assert) {
@@ -301,6 +381,64 @@ define('bike-rent-app/tests/integration/components/history-item-test', ['qunit',
     });
   });
 });
+define('bike-rent-app/tests/integration/components/point-form-test', ['qunit', 'ember-qunit', '@ember/test-helpers'], function (_qunit, _emberQunit, _testHelpers) {
+  'use strict';
+
+  (0, _qunit.module)('Integration | Component | point-form', function (hooks) {
+    (0, _emberQunit.setupRenderingTest)(hooks);
+
+    (0, _qunit.test)('it renders', async function (assert) {
+      // Set any properties with this.set('myProperty', 'value');
+      // Handle any actions with this.set('myAction', function(val) { ... });
+
+      await (0, _testHelpers.render)(Ember.HTMLBars.template({
+        "id": "3juN7OMq",
+        "block": "{\"symbols\":[],\"statements\":[[1,[20,\"point-form\"],false]],\"hasEval\":false}",
+        "meta": {}
+      }));
+
+      assert.equal(this.element.textContent.trim(), '');
+
+      // Template block usage:
+      await (0, _testHelpers.render)(Ember.HTMLBars.template({
+        "id": "mGsgvtyf",
+        "block": "{\"symbols\":[],\"statements\":[[0,\"\\n\"],[4,\"point-form\",null,null,{\"statements\":[[0,\"        template block text\\n\"]],\"parameters\":[]},null],[0,\"    \"]],\"hasEval\":false}",
+        "meta": {}
+      }));
+
+      assert.equal(this.element.textContent.trim(), 'template block text');
+    });
+  });
+});
+define('bike-rent-app/tests/integration/components/point-item-test', ['qunit', 'ember-qunit', '@ember/test-helpers'], function (_qunit, _emberQunit, _testHelpers) {
+  'use strict';
+
+  (0, _qunit.module)('Integration | Component | point-item', function (hooks) {
+    (0, _emberQunit.setupRenderingTest)(hooks);
+
+    (0, _qunit.test)('it renders', async function (assert) {
+      // Set any properties with this.set('myProperty', 'value');
+      // Handle any actions with this.set('myAction', function(val) { ... });
+
+      await (0, _testHelpers.render)(Ember.HTMLBars.template({
+        "id": "MoB2M6jo",
+        "block": "{\"symbols\":[],\"statements\":[[1,[20,\"point-item\"],false]],\"hasEval\":false}",
+        "meta": {}
+      }));
+
+      assert.equal(this.element.textContent.trim(), '');
+
+      // Template block usage:
+      await (0, _testHelpers.render)(Ember.HTMLBars.template({
+        "id": "Rq1lpmbL",
+        "block": "{\"symbols\":[],\"statements\":[[0,\"\\n\"],[4,\"point-item\",null,null,{\"statements\":[[0,\"        template block text\\n\"]],\"parameters\":[]},null],[0,\"    \"]],\"hasEval\":false}",
+        "meta": {}
+      }));
+
+      assert.equal(this.element.textContent.trim(), 'template block text');
+    });
+  });
+});
 define('bike-rent-app/tests/integration/components/trip-form-test', ['qunit', 'ember-qunit', '@ember/test-helpers'], function (_qunit, _emberQunit, _testHelpers) {
   'use strict';
 
@@ -363,6 +501,26 @@ define('bike-rent-app/tests/integration/helpers/get-bicycle-name-test', ['qunit'
       await (0, _testHelpers.render)(Ember.HTMLBars.template({
         "id": "+S4uShE6",
         "block": "{\"symbols\":[],\"statements\":[[1,[26,\"get-bicycle-name\",[[22,[\"inputValue\"]]],null],false]],\"hasEval\":false}",
+        "meta": {}
+      }));
+
+      assert.equal(this.element.textContent.trim(), '1234');
+    });
+  });
+});
+define('bike-rent-app/tests/integration/helpers/get-point-name-test', ['qunit', 'ember-qunit', '@ember/test-helpers'], function (_qunit, _emberQunit, _testHelpers) {
+  'use strict';
+
+  (0, _qunit.module)('Integration | Helper | get-point-name', function (hooks) {
+    (0, _emberQunit.setupRenderingTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it renders', async function (assert) {
+      this.set('inputValue', '1234');
+
+      await (0, _testHelpers.render)(Ember.HTMLBars.template({
+        "id": "vWebUj3p",
+        "block": "{\"symbols\":[],\"statements\":[[1,[26,\"get-point-name\",[[22,[\"inputValue\"]]],null],false]],\"hasEval\":false}",
         "meta": {}
       }));
 
@@ -466,6 +624,16 @@ define('bike-rent-app/tests/tests.lint-test', [], function () {
     assert.ok(true, 'integration/components/history-item-test.js should pass ESLint\n\n');
   });
 
+  QUnit.test('integration/components/point-form-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/components/point-form-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('integration/components/point-item-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/components/point-item-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('integration/components/trip-form-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'integration/components/trip-form-test.js should pass ESLint\n\n');
@@ -479,6 +647,11 @@ define('bike-rent-app/tests/tests.lint-test', [], function () {
   QUnit.test('integration/helpers/get-bicycle-name-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'integration/helpers/get-bicycle-name-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('integration/helpers/get-point-name-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/helpers/get-point-name-test.js should pass ESLint\n\n');
   });
 
   QUnit.test('integration/helpers/get-trip-name-test.js', function (assert) {
@@ -531,9 +704,39 @@ define('bike-rent-app/tests/tests.lint-test', [], function () {
     assert.ok(true, 'unit/controllers/history-test.js should pass ESLint\n\n');
   });
 
+  QUnit.test('unit/controllers/point-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/point-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/controllers/point/create-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/point/create-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/controllers/point/detail-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/point/detail-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/controllers/point/detail/new-trip-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/point/detail/new-trip-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/controllers/point/edit-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/point/edit-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('unit/models/bicycle-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/models/bicycle-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/models/point-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/models/point-test.js should pass ESLint\n\n');
   });
 
   QUnit.test('unit/models/trip-test.js', function (assert) {
@@ -586,6 +789,36 @@ define('bike-rent-app/tests/tests.lint-test', [], function () {
     assert.ok(true, 'unit/routes/index-test.js should pass ESLint\n\n');
   });
 
+  QUnit.test('unit/routes/point-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/point-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/point/create-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/point/create-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/point/detail-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/point/detail-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/point/detail/index-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/point/detail/index-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/point/detail/new-trip-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/point/detail/new-trip-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/point/edit-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/point/edit-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('unit/serializers/application-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/serializers/application-test.js should pass ESLint\n\n');
@@ -594,6 +827,11 @@ define('bike-rent-app/tests/tests.lint-test', [], function () {
   QUnit.test('unit/serializers/bicycle-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/serializers/bicycle-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/serializers/point-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/serializers/point-test.js should pass ESLint\n\n');
   });
 
   QUnit.test('unit/serializers/trip-test.js', function (assert) {
@@ -702,6 +940,71 @@ define('bike-rent-app/tests/unit/controllers/history-test', ['qunit', 'ember-qun
     });
   });
 });
+define('bike-rent-app/tests/unit/controllers/point-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Controller | point', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it exists', function (assert) {
+      let controller = this.owner.lookup('controller:point');
+      assert.ok(controller);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/controllers/point/create-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Controller | point/create', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it exists', function (assert) {
+      let controller = this.owner.lookup('controller:point/create');
+      assert.ok(controller);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/controllers/point/detail-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Controller | point/detail', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it exists', function (assert) {
+      let controller = this.owner.lookup('controller:point/detail');
+      assert.ok(controller);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/controllers/point/detail/new-trip-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Controller | point/detail/new-trip', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it exists', function (assert) {
+      let controller = this.owner.lookup('controller:point/detail/new-trip');
+      assert.ok(controller);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/controllers/point/edit-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Controller | point/edit', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it exists', function (assert) {
+      let controller = this.owner.lookup('controller:point/edit');
+      assert.ok(controller);
+    });
+  });
+});
 define('bike-rent-app/tests/unit/models/bicycle-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
   'use strict';
 
@@ -712,6 +1015,20 @@ define('bike-rent-app/tests/unit/models/bicycle-test', ['qunit', 'ember-qunit'],
     (0, _qunit.test)('it exists', function (assert) {
       let store = this.owner.lookup('service:store');
       let model = Ember.run(() => store.createRecord('bicycle', {}));
+      assert.ok(model);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/models/point-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Model | point', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it exists', function (assert) {
+      let store = this.owner.lookup('service:store');
+      let model = Ember.run(() => store.createRecord('point', {}));
       assert.ok(model);
     });
   });
@@ -838,6 +1155,78 @@ define('bike-rent-app/tests/unit/routes/index-test', ['qunit', 'ember-qunit'], f
     });
   });
 });
+define('bike-rent-app/tests/unit/routes/point-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Route | point', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    (0, _qunit.test)('it exists', function (assert) {
+      let route = this.owner.lookup('route:point');
+      assert.ok(route);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/routes/point/create-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Route | point/create', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    (0, _qunit.test)('it exists', function (assert) {
+      let route = this.owner.lookup('route:point/create');
+      assert.ok(route);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/routes/point/detail-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Route | point/detail', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    (0, _qunit.test)('it exists', function (assert) {
+      let route = this.owner.lookup('route:point/detail');
+      assert.ok(route);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/routes/point/detail/index-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Route | point/detail/index', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    (0, _qunit.test)('it exists', function (assert) {
+      let route = this.owner.lookup('route:point/detail/index');
+      assert.ok(route);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/routes/point/detail/new-trip-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Route | point/detail/new-trip', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    (0, _qunit.test)('it exists', function (assert) {
+      let route = this.owner.lookup('route:point/detail/new-trip');
+      assert.ok(route);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/routes/point/edit-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Route | point/edit', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    (0, _qunit.test)('it exists', function (assert) {
+      let route = this.owner.lookup('route:point/edit');
+      assert.ok(route);
+    });
+  });
+});
 define('bike-rent-app/tests/unit/serializers/application-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
   'use strict';
 
@@ -879,6 +1268,30 @@ define('bike-rent-app/tests/unit/serializers/bicycle-test', ['qunit', 'ember-qun
     (0, _qunit.test)('it serializes records', function (assert) {
       let store = this.owner.lookup('service:store');
       let record = Ember.run(() => store.createRecord('bicycle', {}));
+
+      let serializedRecord = record.serialize();
+
+      assert.ok(serializedRecord);
+    });
+  });
+});
+define('bike-rent-app/tests/unit/serializers/point-test', ['qunit', 'ember-qunit'], function (_qunit, _emberQunit) {
+  'use strict';
+
+  (0, _qunit.module)('Unit | Serializer | point', function (hooks) {
+    (0, _emberQunit.setupTest)(hooks);
+
+    // Replace this with your real tests.
+    (0, _qunit.test)('it exists', function (assert) {
+      let store = this.owner.lookup('service:store');
+      let serializer = store.serializerFor('point');
+
+      assert.ok(serializer);
+    });
+
+    (0, _qunit.test)('it serializes records', function (assert) {
+      let store = this.owner.lookup('service:store');
+      let record = Ember.run(() => store.createRecord('point', {}));
 
       let serializedRecord = record.serialize();
 

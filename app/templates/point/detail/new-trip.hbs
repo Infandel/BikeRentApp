@@ -1,0 +1,7 @@
+<div class="slide-out-content">
+  <div class="title">
+    <h3>New Trip for {{model.point.rentPoint}}</h3>
+  </div>
+
+  {{trip-form trip=model.trip point=model.point onSubmit=(action "saveTrip")}}
+</div>

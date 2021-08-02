@@ -1,0 +1,18 @@
+<form onsubmit={{action "savePoint"}}>
+  <div class="field">
+    <label>Rent Point:</label>
+    {{input type="text" placeholder="Rent Point" value=rentPoint}}
+  </div>
+
+  <div class="field">
+    <label>Bicycle:</label>
+    <p class="control">
+      {{#power-select searchEnabled=true onchange=(action (mut bicycle)) selected=bicycle search=(action "searchBicycle") as |bicycle|}}
+        {{bicycle.brand}}
+      {{/power-select}}
+    </p>
+  </div>
+  <div class="form-footer">
+    <button type="submit" class="btn-submit">Save</button>
+  </div>
+</form>

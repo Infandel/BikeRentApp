@@ -1,0 +1,26 @@
+<div class="panel-heading">
+  <div class="search">
+    {{input type="text" placeholder="Search by Renting point name" value=search}}
+  </div>
+
+  {{#link-to "point.create" class="btn-new"}}
+    <div class="sr-only">Add new Rent point</div>
+  {{/link-to}}
+</div>
+
+<div class="panel-content">
+  <h3 class="panel-title">Rent points with corresponding bicycles</h3>
+
+  <ul class="collection">
+    {{#each model as |point|}}
+      {{point-item 
+      rentPoint=point.rentPoint
+      idPoint=point.id
+      avgRentTime=point.averageRentTime
+      bicycleItself=point.bicycle.brand
+      tagName='li'}}
+    {{/each}}
+  </ul>
+</div>
+
+{{outlet}}

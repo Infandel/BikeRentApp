@@ -1,0 +1,22 @@
+<div class="slide-out-content">
+    <div class="title">
+      <h3>{{model.trips.length}} Trips</h3>
+      <div class="actions">
+        {{#link-to "point.detail.new-trip" model.id class="btn-secondary btn-add btn"}}Add a trip{{/link-to}}
+      </div>
+    </div>
+
+    <ul class="review-list">
+      {{#each model.trips as |trip|}}
+        <li class="review">
+          <p>Trip time is: <strong>{{trip.rentHours}}</strong> hours</p>
+          <div class="details">
+            <p>
+              <strong>Renting Date:</strong>
+              {{moment-format trip.rentDate "Do MMMM YYYY"}}
+            </p>
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+  </div>

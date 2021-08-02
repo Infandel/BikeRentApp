@@ -1,0 +1,35 @@
+<div class="slide-out-bg"></div>
+
+<div class="slide-out">
+  <div class="slide-out-card">
+    {{#link-to "point.index" class="btn-back"}}
+      <span class="sr-only">Back</span>
+    {{/link-to}}
+
+    <div class="slide-out-heading">
+      <div class="title">
+        <h3>{{this.model.rentPoint}}</h3>
+
+        <div class="actions">
+          {{#link-to "point.edit" model.id class="btn-pop"}}edit{{/link-to}}
+
+          <button class="btn-recessed" onclick={{action "deletePoint"}}>delete</button>
+        </div>
+      </div>
+      <div class="details">
+        <p>
+          <strong>Bicycle:</strong>
+          {{#link-to "bicycle.detail" model.bicycle.id}}
+            {{model.bicycle.brand}}
+          {{/link-to}}
+        </p>
+        <p>
+          <strong>Average bicycle trip time:</strong>
+          {{model.averageRentTime}}
+        </p>
+      </div>
+    </div>
+
+    {{outlet class="no-overflow"}}
+  </div>
+</div>
